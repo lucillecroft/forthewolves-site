@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For the Wolves HQ</title>
+<meta name="description" content="For the Wolves HQ. A worldbuilding studio for artists, brands and companies. Creative direction and styling for the wolves, not the sheep.">
+<meta property="og:title" content="For the Wolves HQ">
+<meta property="og:description" content="We build worlds for the wolves. Not the sheep.">
+<meta property="og:url" content="https://forthewolveshq.com">
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;1,400&family=UnifrakturMaguntia&family=Anybody:wdth,wght@150,900&display=swap">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<!--PAGE-START-->
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-q">
+  <canvas class="gate-entity" id="gate-entity" aria-hidden="true"></canvas>
+  <div class="gate-in">
+    <h2 class="gate-q tiny" id="gate-q">Are you a</h2>
+    <div class="gate-pick">
+      <button type="button" class="pick" id="pick-wolf">Wolf</button>
+      <i aria-hidden="true">or</i>
+      <button type="button" class="pick" id="pick-sheep">Sheep</button>
+    </div>
+  </div>
+  <div class="gate-baa" aria-live="polite">
+    <p class="baa">Baa.</p>
+    <ol class="flock">
+      <li>No sheep past this point.</li>
+      <li class="dim">Only originals, pioneers,</li>
+      <li class="dim">trendsetters and legends.</li>
+      <li class="turn">Good news: it's not permanent.</li>
+    </ol>
+    <button type="button" class="pick shed" id="pick-again">Lose the wool</button>
+  </div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+<div class="xy" aria-hidden="true"></div>
+<div class="peek" aria-hidden="true"></div>
+<div class="howl" aria-hidden="true"><p>Not the sheep.</p></div>
+
+<header class="bar">
+  <span class="clock" id="clock">FTW/HQ</span>
+  <a class="mark" href="#top" aria-label="For the Wolves HQ, back to top"><b>For the Wolves</b><span>HQ</span></a>
+  <nav aria-label="Main">
+    <a href="#services" class="hide-sm">Services</a>
+    <a href="#work">Work</a>
+    <a href="#pack" class="hide-sm">Pack</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<main id="top" class="home">
+  <section class="hero wrap" aria-labelledby="hero-title">
+    <h1 id="hero-title" class="sr-only">For the Wolves HQ</h1>
+    <canvas class="hero-canvas" id="hero-canvas" width="1440" height="600" aria-hidden="true"></canvas>
+    <div class="hero-foot">
+      <p class="lede">We build worlds for the wolves. <s>Not the sheep.</s></p>
+    </div>
+  </section>
+
+  <section class="genesis wrap" aria-labelledby="gen-q">
+    <div class="field-wrap">
+      <canvas class="field" id="field" aria-hidden="true"></canvas>
+      <div class="gen-q"><h2 id="gen-q">What is an idea?</h2></div>
+      <dl class="gen-info" id="gen-info" aria-hidden="true"></dl>
+    </div>
+    <p class="gen-line">The universe began smaller than an atom.<br>So does every idea.<span class="gen-cta">Bring us the smallest one. We'll build the universe.</span></p>
+  </section>
+
+  <section id="services" class="section wrap" aria-labelledby="svc-title">
+    <div class="sec-head"><h2 id="svc-title">Services</h2><span class="tiny">What we do</span></div>
+    <div class="services">
+      <ul class="svc-list" id="svc-list">
+        <li class="on"><button type="button" data-d="Visual identity and image guidelines for artists, labels, brands and companies.">Art Direction</button></li>
+        <li><button type="button" data-d="Campaigns for music, fashion and brands, from the first idea to the last retouch.">Campaign</button></li>
+        <li><button type="button" data-d="Concept, references and casting for releases, launches and campaigns. Directed through to the final frame.">Creative Direction</button></li>
+        <li><button type="button" data-d="Treatments, look and wardrobe for music videos, brand films and everything cut from them.">Film &amp; Music Video</button></li>
+        <li><button type="button" data-d="The story and the voice: concept writing, naming, copy and how an artist or brand speaks.">Narrative &amp; Voice</button></li>
+        <li><button type="button" data-d="Crew, location, set and call sheet, so the day runs and the image lands.">Production</button></li>
+        <li><button type="button" data-d="Tours, festivals, shows and live brand moments that read from the back row and on camera.">Stage &amp; Tour</button></li>
+        <li><button type="button" data-d="Red carpet, editorial, campaign, music video and the Met Gala. Designer and archive pulls, fittings, on set.">Styling</button></li>
+        <li><button type="button" data-d="Moving and still image as one language: identity, visuals, motion, loops and 3D.">Visual &amp; Motion</button></li>
+        <li><button type="button" data-d="The universe around an artist, brand or company: its story, codes, look and rules, built to carry every release, launch and season.">Worldbuilding</button></li>
+      </ul>
+      <p class="svc-desc" id="svc-desc" aria-live="polite">Visual identity and image guidelines for artists, labels, brands and companies.</p>
+    </div>
+  </section>
+
+  <section id="work" class="section wrap" aria-labelledby="work-title">
+    <div class="sec-head"><h2 id="work-title">Selected work</h2><span class="tiny"><a href="mailto:lucille@forthewolveshq.com?subject=Folio%20request">Full folio on request</a></span></div>
+
+    <ol class="index doors">
+      <li><a class="row door" href="#reel"><span class="n">Room 01</span><span class="t">Reel</span><span class="d">Moving image</span><span class="y">→</span></a></li>
+      <li><a class="row door" href="#shoots"><span class="n">Room 02</span><span class="t">Shoots</span><span class="d">Photography &amp; styling</span><span class="y">→</span></a></li>
+      <li><a class="row door" href="#exhibit"><span class="n">Room 03</span><span class="t">Exhibit</span><span class="d">Artworks</span><span class="y">→</span></a></li>
+    </ol>
+  </section>
+
+  <div class="view" id="view" role="dialog" aria-modal="true" aria-labelledby="view-title" aria-hidden="true">
+    <button class="btn" id="view-close" type="button">Close ✕</button>
+    <div class="view-art" id="view-art"></div>
+    <div class="placard big" id="view-placard"></div>
+  </div>
+
+  <section id="pack" class="section wrap manifesto" aria-labelledby="pack-title">
+    <div class="sec-head"><h2 id="pack-title">The pack</h2><span class="tiny">Manifesto</span></div>
+    <p class="big" style="margin-top:clamp(28px,4vw,56px)">Every idea deserves a world. Its look, its sound, its skin, its rules. <span class="bl">Wolves.</span> <s>Not sheep.</s></p>
+    <div class="cols">
+      <p>For the Wolves HQ is a worldbuilding studio for artists, brands and companies who would rather change the culture than follow it. You bring the thought. We give it a world, then set it loose.</p>
+      <p>Small pack, sharp teeth. For every world we pull in exactly the right minds, whether it needs a shoot, a stage, a sound or a single graphic.</p>
+    </div>
+  </section>
+
+  <section id="contact" class="section wrap contact" aria-labelledby="contact-title">
+    <div class="sec-head"><h2 id="contact-title">Contact</h2><span class="tiny">Wolves only</span></div>
+    <a class="mail" id="email" href="mailto:lucille@forthewolveshq.com">lucille@forthewolveshq.com</a>
+    <div class="contact-row">
+      <button class="btn" id="copy-email" type="button">Copy email</button>
+      <span class="tiny" id="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<section class="page wrap" id="page-reel" aria-labelledby="page-reel-title" hidden>
+  <div class="page-top"><a class="tiny" href="#work">← Selected work</a><span class="tiny">Moving image</span></div>
+  <h1 class="page-title" id="page-reel-title">Reel</h1>
+      <div class="reel">
+        <canvas class="reel-canvas" id="reel-canvas" aria-hidden="true"></canvas>
+        <video class="reel-video" id="reel-video" playsinline muted loop hidden></video>
+        <div class="reel-hud" aria-hidden="true"><span>FTW Reel / 2026</span><span id="reel-tc">00:00:00:00</span></div>
+        <button class="reel-sound tiny" id="reel-sound" type="button" hidden>Sound off</button>
+      </div>
+  <a class="page-next" href="#shoots"><span class="tiny">Next room</span><span class="t">Shoots</span><span aria-hidden="true">→</span></a>
+</section>
+<section class="page wrap" id="page-shoots" aria-labelledby="page-shoots-title" hidden>
+  <div class="page-top"><a class="tiny" href="#work">← Selected work</a><span class="tiny">Photography &amp; styling</span></div>
+  <h1 class="page-title" id="page-shoots-title">Shoots</h1>
+      <ol class="index" id="index"><!-- built from PROJECTS in assets/main.js --></ol>
+  <a class="page-next" href="#exhibit"><span class="tiny">Next room</span><span class="t">Exhibit</span><span aria-hidden="true">→</span></a>
+</section>
+<section class="page wrap" id="page-exhibit" aria-labelledby="page-exhibit-title" hidden>
+  <div class="page-top"><a class="tiny" href="#work">← Selected work</a><span class="hall-nav"><span class="tiny" id="hall-count">01 / 05</span><button class="btn" id="hall-prev" type="button" aria-label="Previous work">←</button><button class="btn" id="hall-next" type="button" aria-label="Next work">→</button></span></div>
+  <h1 class="page-title" id="page-exhibit-title">Exhibit</h1>
+      <div class="hall" id="hall" tabindex="0" aria-label="Artworks, scroll sideways">
+        <div class="hall-track" id="hall-track">
+          <div class="wall-text"><span class="tiny">Exhibit 01</span><p>Works from the world of For the Wolves.</p><span class="tiny">2024 to 2026</span></div>
+          <!-- built from ARTWORKS in assets/main.js -->
+        </div>
+      </div>
+  <a class="page-next" href="#reel"><span class="tiny">Next room</span><span class="t">Reel</span><span aria-hidden="true">→</span></a>
+</section>
+
+<footer class="foot wrap">
+  <p class="foot-mark" aria-hidden="true">For the Wolves</p>
+  <div class="foot-row">
+    <span class="tiny">© <span id="year">2026</span> For the Wolves HQ</span>
+    <a class="tiny" href="#top">Top ↑</a>
+  </div>
+</footer>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="ov-title" aria-hidden="true">
+  <div class="ov-top"><span class="tiny" id="ov-index"></span><button class="btn" id="ov-close" type="button">Close ✕</button></div>
+  <h2 id="ov-title"></h2>
+  <dl class="ov-meta" id="ov-meta"></dl>
+  <p class="ov-text" id="ov-text"></p>
+  <div class="ov-gal" id="ov-gal"></div>
+  <div class="ov-end">
+    <div class="sec-head"><h3 class="tiny" style="margin:0">Credits</h3><span class="tiny">Team</span></div>
+    <dl class="ov-credits" id="ov-credits"></dl>
+    <button class="ov-next" id="ov-next" type="button"><span class="n tiny"></span><span class="t"></span><span class="arrow" aria-hidden="true">→</span></button>
+  </div>
+</div>
+<!--PAGE-END-->
+<script src="assets/main.js"></script>
+</body>
+</html>
