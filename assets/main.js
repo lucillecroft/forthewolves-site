@@ -421,8 +421,8 @@ window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTi
   document.getElementById("pick-again").addEventListener("click", enter);
 })();
 
-/* ================= GENESIS: a figure assembling out of letters ================= */
-// Letters drift in from nowhere and settle into a figure. The cursor tears through them; they reform.
+/* ================= GENESIS: an atom assembling out of letters ================= */
+// Letters drift in from nowhere and settle into an atom. The cursor tears through them; they reform.
 const field = document.getElementById("field");
 const Field = (() => {
   if (!field) return { build() {} };
@@ -432,14 +432,14 @@ const Field = (() => {
   let n = 0, hx, hy, x, y, vx, vy, ch, lit, delay, t0 = 0, visible = false, running = false, born = false;
   const ptr = { x: -9999, y: -9999, vx: 0, vy: 0, on: false };
   // the machine reading the idea: regions of the figure, each with a live match score
-  const REG = [["head", 0.5, 0.07, 0.7, 0.33], ["form", 0.38, 0.36, 0.82, 0.7], ["shadow", 0.62, 0.74, 0.92, 0.97]];
+  let REG = [["nucleus"], ["spark"], ["orbit"]];
   const wrap = field.parentElement, info = document.getElementById("gen-info");
   // under the letters: the same figure as liquid light, melting. It surfaces as the idea forms.
   const mcv = document.createElement("canvas"); mcv.className = "field-melt"; mcv.setAttribute("aria-hidden", "true");
   wrap.insertBefore(mcv, field);
   const melt = reduceMotion ? null : createMelt(mcv, {
     amb: 0.05, tint: 0.92, decay: 0.986, rad: 0.02, heat: 0.9,
-    auto(t, p) { if (ptr.on) return; const x = .6 + Math.sin(t * .29) * .16, y = .5 + Math.sin(t * .43 + 2) * .3; p.vx += (x - p.x) * .5; p.vy += (y - p.y) * .5; p.x = x; p.y = y; },
+    auto(t, p) { if (ptr.on) return; const x = (W < 600 ? .5 : .6) + Math.sin(t * .29) * .2, y = .5 + Math.cos(t * .43 + 2) * .25; p.vx += (x - p.x) * .5; p.vy += (y - p.y) * .5; p.x = x; p.y = y; },
   });
   if (!melt) mcv.remove();
   let meltOn = false;
@@ -468,23 +468,36 @@ const Field = (() => {
     tags.forEach((t, r) => { t.firstChild.textContent = `${pad(pc[r])}% ${REG[r][0]}`; t.dataset.lvl = pc[r] >= 90 ? "hi" : pc[r] >= 55 ? "mid" : "low"; });
     const all = Math.round(pc.reduce((a, b) => a + b, 0) / REG.length);
     mcv.style.opacity = (Math.max(0, all - 20) / 79 * 0.8).toFixed(3);
-    info.innerHTML = [["Info", "Match"], ["Spark", "001"], ["Thought", pad(Math.round(Math.min(99, all * 1.4)))], ["Form", pad(Math.round((pc[0] + pc[1]) / 2))], ["World", pad(all)]]
+    info.innerHTML = [["Info", "Match"], ["Spark", "001"], ["Thought", pad(Math.round(Math.min(99, all * 1.4)))], ["Form", pad(Math.round((pc[0] + pc[2]) / 2))], ["World", pad(all)]]
       .map(([k, v], r) => `<div${r ? ` data-lvl="${+v >= 90 ? "hi" : +v >= 55 ? "mid" : "low"}"` : ""}><dt>${k}</dt><dd>${v}</dd></div>`).join("");
   }
 
-  // where the light is: a standing figure, slightly off centre, with a soft dither edge
+  // where the light is: an atom. A bright nucleus, three orbits, an electron riding each one.
+  let ASP = 0.9;   // box width / height in pixels, so the orbits stay round
+  const ORB = [0, Math.PI / 3, 2 * Math.PI / 3], OA = 0.42, OB = 0.13;
+  const ELEC = [[2, Math.PI], [1, 0], [0, Math.PI * 0.85]];   // [orbit, angle]
+  const at = (o, t) => { const c = Math.cos(ORB[o]), s = Math.sin(ORB[o]), X = OA * Math.cos(t), Y = OB * Math.sin(t); return [X * c - Y * s, X * s + Y * c]; };
   function figure(u, v) {
-    const cx = 0.6 + (v - 0.4) * 0.05;
-    const head = Math.hypot((u - cx) / 0.055, (v - 0.2) / 0.1);
-    const sh = v > 0.3 ? Math.min(1, (v - 0.3) / 0.12) : 0;
-    const bodyW = 0.05 + sh * 0.085 + Math.max(0, v - 0.55) * 0.05;
-    const arm = Math.abs(u - (cx - bodyW - 0.03)) < 0.02 + (v - 0.4) * 0.02 && v > 0.36 && v < 0.82;
-    if (head < 1) return 1 - head * 0.25;
-    if (v > 0.28 && Math.abs(u - cx) < bodyW) return 0.95 - Math.abs(u - cx) / bodyW * 0.45;
-    if (arm) return 0.55;
-    // a shadow cast to the right, and a few stars of noise
-    const sh2 = v > 0.55 && u > cx && u < cx + (v - 0.55) * 0.9 && Math.abs(v - 0.55 - (u - cx) * 0.35) < 0.08;
-    return sh2 ? 0.28 : 0.02;
+    const X = (u - 0.5) * ASP, Y = v - 0.5;
+    const nuc = Math.hypot(X, Y) / 0.075;
+    if (nuc < 1) return 1 - nuc * 0.2;
+    for (const [o, t] of ELEC) { const [ex, ey] = at(o, t); if (Math.hypot(X - ex, Y - ey) < 0.03) return 1; }
+    let best = 0;
+    for (let o = 0; o < 3; o++) {
+      const c = Math.cos(-ORB[o]), s = Math.sin(-ORB[o]), x2 = X * c - Y * s, y2 = X * s + Y * c;
+      const f = (x2 / OA) ** 2 + (y2 / OB) ** 2 - 1, g = Math.hypot(2 * x2 / (OA * OA), 2 * y2 / (OB * OB)) || 1;
+      const d = Math.abs(f) / g;
+      if (d < 0.016) best = Math.max(best, 0.82 - d * 12);
+    }
+    // a faint glow around the nucleus, and a few stray particles
+    const glow = Math.hypot(X, Y) < 0.13 ? 0.3 : 0;
+    return Math.max(best, glow, 0.02);
+  }
+  // live boxes around three parts of the atom (u0, v0, u1, v1 in the box)
+  function regions() {
+    const box = (o, t, r) => { const [ex, ey] = at(o, t), u = 0.5 + ex / ASP, v = 0.5 + ey, ru = r / ASP; return [u - ru, v - r, u + ru, v + r]; };
+    const e1 = box(2, Math.PI, 0.075), e2 = box(1, 0, 0.075);
+    return [["nucleus", 0.5 - 0.12 / ASP, 0.38, 0.5 + 0.12 / ASP, 0.62], ["spark", ...e1], ["orbit", ...e2]];
   }
 
   function build() {
@@ -500,6 +513,10 @@ const Field = (() => {
     const R = rng(7), keep = [];
     // the figure lives in a portrait box; on wide screens it sits right of centre
     const boxW = Math.min(cols, Math.round(rows * lh / cw * 0.9)), off = Math.round((cols - boxW) * (W < 600 ? 0.5 : 0.62));
+    ASP = (boxW * cw) / (rows * lh); REG = regions();
+    // on phones the question sits above the field, so the glow and boxes start where the field starts
+    const oy = field.offsetTop;
+    Object.assign(mcv.style, { top: `${oy}px`, height: `${H}px`, bottom: "auto" });
     for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
       const u = (i - off) / boxW, v = j / rows;
       const L = (u >= 0 && u <= 1) ? figure(u, v) : 0;
@@ -511,7 +528,7 @@ const Field = (() => {
     region = new Uint8Array(n); regN = REG.map(() => 0);
     const fh = rows * lh;
     REG.forEach(([, u0, v0, u1, v1], r) => {
-      Object.assign(tags[r].style, { left: `${(off + u0 * boxW) * cw}px`, top: `${v0 * fh}px`, width: `${(u1 - u0) * boxW * cw}px`, height: `${(v1 - v0) * fh}px` });
+      Object.assign(tags[r].style, { left: `${(off + u0 * boxW) * cw}px`, top: `${oy + v0 * fh}px`, width: `${(u1 - u0) * boxW * cw}px`, height: `${(v1 - v0) * fh}px` });
     });
     hx = new Float32Array(n); hy = new Float32Array(n); x = new Float32Array(n); y = new Float32Array(n);
     vx = new Float32Array(n); vy = new Float32Array(n); ch = new Array(n); lit = new Uint8Array(n); delay = new Float32Array(n);
