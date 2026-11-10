@@ -432,7 +432,7 @@ const Field = (() => {
   let n = 0, hx, hy, x, y, vx, vy, ch, lit, delay, t0 = 0, visible = false, running = false, born = false;
   const ptr = { x: -9999, y: -9999, vx: 0, vy: 0, on: false };
   // the machine reading the idea: regions of the figure, each with a live match score
-  const REG = [["head", 0.5, 0.07, 0.7, 0.33], ["form", 0.38, 0.36, 0.82, 0.7], ["shadow", 0.66, 0.74, 1.0, 0.97]];
+  const REG = [["head", 0.5, 0.07, 0.7, 0.33], ["form", 0.38, 0.36, 0.82, 0.7], ["shadow", 0.62, 0.74, 0.92, 0.97]];
   const wrap = field.parentElement, info = document.getElementById("gen-info");
   // under the letters: the same figure as liquid light, melting. It surfaces as the idea forms.
   const mcv = document.createElement("canvas"); mcv.className = "field-melt"; mcv.setAttribute("aria-hidden", "true");
