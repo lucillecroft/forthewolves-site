@@ -381,17 +381,17 @@ window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTi
   try { seen = sessionStorage.getItem("ftw-wolf") === "1"; } catch (e) {}
   if (seen || /^#(ftw-\d{3}|reel|shoots|exhibit)$/.test(location.hash)) { gate.remove(); return; }
   doc.classList.add("gated");
-  // the entity: a presence of light behind the question, always slowly melting
+  // the eclipse: a black sun behind the question, always slowly melting
   const ecv = document.getElementById("gate-entity");
   const ent = reduceMotion ? null : createMelt(ecv, {
-    amb: 0.09, tint: 0.9, decay: 0.988, rad: 0.03, heat: 0.75,
+    amb: 0.035, tint: 0.9, decay: 0.988, rad: 0.03, heat: 0.4,
     auto(t, p) { // an invisible hand moving through it
       const x = .5 + Math.sin(t * .37) * .28 + Math.sin(t * 1.3) * .05, y = .55 + Math.sin(t * .51 + 1) * .22;
       p.vx += (x - p.x) * .9; p.vy += (y - p.y) * .9; p.x = x; p.y = y;
     },
   });
   if (ent) {
-    ent.resize(); ent.setSource(entityImage()); ent.start();
+    ent.resize(); ent.setSource(eclipseImage()); ent.start();
     requestAnimationFrame(() => ecv.classList.add("on"));
     let lp = null;
     gate.addEventListener("pointermove", (e) => {
@@ -783,6 +783,23 @@ function entityImage(w = 640, h = 640) {
   [[.42, .37], [.58, .37]].forEach(([u, v]) => { x.beginPath(); x.ellipse(w * u, h * v, w * .045, h * .025, 0, 0, Math.PI * 2); x.fill(); });
   x.fillStyle = "rgba(10,12,20,.5)"; x.beginPath(); x.ellipse(w * .5, h * .45, w * .02, h * .045, 0, 0, Math.PI * 2); x.fill();
   x.fillStyle = "rgba(10,12,20,.75)"; x.beginPath(); x.ellipse(w * .5, h * .53, w * .07, h * .012, 0, 0, Math.PI * 2); x.fill();
+  return c;
+}
+
+// The entry backdrop: an eclipse. A black disc, a thin white rim, light bleeding out in rays.
+function eclipseImage(w = 720, h = 720) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const x = c.getContext("2d"), im = x.createImageData(w, h), cx = w / 2, cy = h * .46, R = w * .22;
+  const hs = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
+  const nz = (t) => { const i = Math.floor(t), f = t - i, u = f * f * (3 - 2 * f); return hs(i, 1) + (hs(i + 1, 1) - hs(i, 1)) * u; };
+  const rays = (a) => .5 * nz(a * 6 + 20) + .3 * nz(a * 13 + 5) + .2 * nz(a * 29 + 9);
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const dx = (i - cx) / R, dy = (j - cy) / R, rr = Math.hypot(dx, dy), q = (j * w + i) * 4;
+    let L = 0;
+    if (rr >= 1) { const a = Math.atan2(dy, dx) + Math.PI, ray = .5 + .5 * rays(a), fall = Math.exp(-(rr - 1) * (5 / ray)); L = Math.min(1.35, fall * .8 + Math.exp(-(rr - 1) * 55)); }
+    im.data[q] = L * 185; im.data[q + 1] = L * 200; im.data[q + 2] = L * 240; im.data[q + 3] = 255;
+  }
+  x.putImageData(im, 0, 0);
   return c;
 }
 
