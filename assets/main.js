@@ -421,8 +421,8 @@ window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTi
   document.getElementById("pick-again").addEventListener("click", enter);
 })();
 
-/* ================= GENESIS: an atom assembling out of letters ================= */
-// Letters drift in from nowhere and settle into an atom. The cursor tears through them; they reform.
+/* ================= GENESIS: an exploding star assembling out of letters ================= */
+// Letters drift in from nowhere and settle into an exploding star. The cursor tears through them; they reform.
 const field = document.getElementById("field");
 const Field = (() => {
   if (!field) return { build() {} };
@@ -432,7 +432,7 @@ const Field = (() => {
   let n = 0, hx, hy, x, y, vx, vy, ch, lit, delay, t0 = 0, visible = false, running = false, born = false;
   const ptr = { x: -9999, y: -9999, vx: 0, vy: 0, on: false };
   // the machine reading the idea: regions of the figure, each with a live match score
-  let REG = [["nucleus"], ["spark"], ["orbit"]];
+  let REG = [["core"], ["shockwave"], ["debris"]];
   const wrap = field.parentElement, info = document.getElementById("gen-info");
   // under the letters: the same figure as liquid light, melting. It surfaces as the idea forms.
   const mcv = document.createElement("canvas"); mcv.className = "field-melt"; mcv.setAttribute("aria-hidden", "true");
@@ -448,15 +448,15 @@ const Field = (() => {
     const w = 480, h = Math.max(2, Math.round(480 * H / W)), c = document.createElement("canvas"); c.width = w; c.height = h;
     const x = c.getContext("2d"), im = x.createImageData(w, h);
     for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
-      const u = (i / w * cols - off) / boxW, v = j / h, L = (u >= 0 && u <= 1) ? figure(u, v) : 0;
+      const u = (i / w * cols - off) / boxW, v = j / h, L = figure(u, v);
       const g = Math.round(Math.min(1, L * L * 1.1) * 255), q = (j * w + i) * 4;
       im.data[q] = im.data[q + 1] = im.data[q + 2] = g; im.data[q + 3] = 255;
     }
     x.putImageData(im, 0, 0);
     const o = document.createElement("canvas"); o.width = w; o.height = h;
     const ox = o.getContext("2d"); ox.fillStyle = "#000"; ox.fillRect(0, 0, w, h);
-    ox.filter = "blur(10px)"; ox.drawImage(c, 0, 0);
-    ox.filter = "blur(3px)"; ox.globalAlpha = .6; ox.drawImage(c, 0, 0);
+    ox.filter = "blur(2px)"; ox.drawImage(c, 0, 0);
+    ox.globalCompositeOperation = "lighter"; ox.filter = "blur(12px)"; ox.globalAlpha = .7; ox.drawImage(c, 0, 0);
     return o;
   }
   const tags = REG.map(([name]) => { const t = document.createElement("div"); t.className = "tag"; t.innerHTML = `<b>000% ${name}</b>`; wrap.appendChild(t); return t; });
@@ -472,32 +472,25 @@ const Field = (() => {
       .map(([k, v], r) => `<div${r ? ` data-lvl="${+v >= 90 ? "hi" : +v >= 55 ? "mid" : "low"}"` : ""}><dt>${k}</dt><dd>${v}</dd></div>`).join("");
   }
 
-  // where the light is: an atom. A bright nucleus, three orbits, an electron riding each one.
-  let ASP = 0.9;   // box width / height in pixels, so the orbits stay round
-  const ORB = [0, Math.PI / 3, 2 * Math.PI / 3], OA = 0.42, OB = 0.13;
-  const ELEC = [[2, Math.PI], [1, 0], [0, Math.PI * 0.85]];   // [orbit, angle]
-  const at = (o, t) => { const c = Math.cos(ORB[o]), s = Math.sin(ORB[o]), X = OA * Math.cos(t), Y = OB * Math.sin(t); return [X * c - Y * s, X * s + Y * c]; };
+  // where the light is: an exploding star. A blinding core, a lens-flare cross, a ragged shockwave, streaks of debris.
+  let ASP = 0.9;   // box width / height in pixels, so it stays round
+  const hs2 = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
+  const nz1 = (t, k) => { const i = Math.floor(t), f = t - i, w = f * f * (3 - 2 * f); return hs2(i, k) + (hs2(i + 1, k) - hs2(i, k)) * w; };
+  const nz2 = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    const a = hs2(xi, yi), b = hs2(xi + 1, yi), c = hs2(xi, yi + 1), d = hs2(xi + 1, yi + 1); return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; };
   function figure(u, v) {
-    const X = (u - 0.5) * ASP, Y = v - 0.5;
-    const nuc = Math.hypot(X, Y) / 0.075;
-    if (nuc < 1) return 1 - nuc * 0.2;
-    for (const [o, t] of ELEC) { const [ex, ey] = at(o, t); if (Math.hypot(X - ex, Y - ey) < 0.03) return 1; }
-    let best = 0;
-    for (let o = 0; o < 3; o++) {
-      const c = Math.cos(-ORB[o]), s = Math.sin(-ORB[o]), x2 = X * c - Y * s, y2 = X * s + Y * c;
-      const f = (x2 / OA) ** 2 + (y2 / OB) ** 2 - 1, g = Math.hypot(2 * x2 / (OA * OA), 2 * y2 / (OB * OB)) || 1;
-      const d = Math.abs(f) / g;
-      if (d < 0.016) best = Math.max(best, 0.82 - d * 12);
-    }
-    // a faint glow around the nucleus, and a few stray particles
-    const glow = Math.hypot(X, Y) < 0.13 ? 0.3 : 0;
-    return Math.max(best, glow, 0.02);
+    const X = (u - 0.5) * ASP, Y = v - 0.5, r = Math.hypot(X, Y), a = Math.atan2(Y, X), t = (a + Math.PI) / (2 * Math.PI) * 40;
+    const core = Math.exp(-r * 34) * 1.8 + Math.exp(-r * 12) * .18;
+    const flare = (Math.exp(-Math.abs(Y) * 220) * Math.exp(-Math.abs(X) * 2.6) + Math.exp(-Math.abs(X) * 220) * Math.exp(-Math.abs(Y) * 2.6)) * .95;
+    const shellR = .31 + (nz1(t * .5, 3) - .5) * .06, shell = Math.exp(-Math.pow((r - shellR) / .014, 2)) * (.15 + .85 * Math.pow(nz1(t * 2, 7), 1.5));
+    const len = .22 + .5 * Math.pow(nz1(t * 3.1, 11), 1.4), streak = Math.pow(Math.abs(Math.cos(a * 30 + nz1(t, 5) * 5)), 70) * (r < len ? 1 : Math.exp(-(r - len) * 30)) * Math.exp(-r * 1.1) * .9;
+    const neb = Math.max(0, nz2(X * 11 + 4, Y * 11 + 2) - .62) * 1.6 * Math.exp(-Math.pow((r - .24) / .1, 2));
+    return Math.min(1, core + flare + shell + streak + neb + 0.02);
   }
-  // live boxes around three parts of the atom (u0, v0, u1, v1 in the box)
+  // live boxes around three parts of the explosion (u0, v0, u1, v1 in the box)
   function regions() {
-    const box = (o, t, r) => { const [ex, ey] = at(o, t), u = 0.5 + ex / ASP, v = 0.5 + ey, ru = r / ASP; return [u - ru, v - r, u + ru, v + r]; };
-    const e1 = box(2, Math.PI, 0.075), e2 = box(1, 0, 0.075);
-    return [["nucleus", 0.5 - 0.12 / ASP, 0.38, 0.5 + 0.12 / ASP, 0.62], ["spark", ...e1], ["orbit", ...e2]];
+    const at = (X, Y, h) => { const u = 0.5 + X / ASP, v = 0.5 + Y, hu = h / ASP; return [u - hu, v - h, u + hu, v + h]; };
+    return [["core", ...at(0, 0, 0.08)], ["shockwave", ...at(0.22, -0.22, 0.06)], ["debris", ...at(-0.3, 0.27, 0.06)]];
   }
 
   function build() {
@@ -519,9 +512,9 @@ const Field = (() => {
     Object.assign(mcv.style, { top: `${oy}px`, height: `${H}px`, bottom: "auto" });
     for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
       const u = (i - off) / boxW, v = j / rows;
-      const L = (u >= 0 && u <= 1) ? figure(u, v) : 0;
+      const L = figure(u, v);
       const t = (BAYER[(j % 8) * 8 + (i % 8)] + 0.5) / 64;
-      if (L > 0.1 ? L > t * 0.7 : R() < 0.012) keep.push(i, j, L);
+      if (L > 0.1 ? L > t * 1.1 : R() < 0.012) keep.push(i, j, L);
     }
     if (melt) { melt.resize(); melt.setSource(meltSource(cols, rows, off, boxW)); melt.clear(); }
     n = keep.length / 3;
