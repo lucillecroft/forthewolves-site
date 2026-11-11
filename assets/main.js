@@ -393,7 +393,7 @@ window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTi
     ent.resize(); ent.setSource(document.createElement("canvas")); ent.start();
     const face = new Image();
     face.onload = () => ent.setSource(face);
-    face.src = innerWidth < innerHeight ? "images/gate-face-p.jpg" : "images/gate-face-l.jpg";
+    face.src = innerWidth < innerHeight ? "images/gate-face-p.jpg?v=4" : "images/gate-face-l.jpg?v=4";
     requestAnimationFrame(() => ecv.classList.add("on"));
     let lp = null;
     gate.addEventListener("pointermove", (e) => {
