@@ -54,6 +54,8 @@ canvas, .shot-img canvas, .row .thumb canvas, .peek canvas { image-rendering: au
 .gate { transition: clip-path 1.8s cubic-bezier(.7, 0, .2, 1), background 1s, color 1s; }
 .gate-entity { transition: opacity 4s ease; }
 .gate-entity.on { opacity: 1; }
+/* the face sits above the question, so the words never cover it */
+.gate { place-items: end center; padding-bottom: clamp(56px, 11vh, 140px); }
 
 /* 6. rooms stay small rows, borderless */
 .door .y { font-size: var(--s-1); }

@@ -380,7 +380,7 @@ window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTi
   try { seen = sessionStorage.getItem("ftw-wolf") === "1"; } catch (e) {}
   if (seen || /^#(ftw-\d{3}|reel|shoots|exhibit)$/.test(location.hash)) { gate.remove(); return; }
   doc.classList.add("gated");
-  // the eclipse: a black sun behind the question, always slowly melting
+  // the entity: a face pressing into black latex from the other side, only just there
   const ecv = document.getElementById("gate-entity");
   const ent = reduceMotion ? null : createMelt(ecv, {
     amb: 0.03, tint: 0, decay: 0.992, rad: 0.03, heat: 0, gloss: 7, speed: 0.35,
@@ -390,7 +390,10 @@ window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTi
     },
   });
   if (ent) {
-    ent.resize(); ent.setSource(eclipseImage()); ent.start();
+    ent.resize(); ent.setSource(document.createElement("canvas")); ent.start();
+    const face = new Image();
+    face.onload = () => ent.setSource(face);
+    face.src = innerWidth < innerHeight ? "images/gate-face-p.png" : "images/gate-face-l.png";
     requestAnimationFrame(() => ecv.classList.add("on"));
     let lp = null;
     gate.addEventListener("pointermove", (e) => {
