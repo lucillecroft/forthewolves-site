@@ -380,19 +380,26 @@ window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTi
   try { seen = sessionStorage.getItem("ftw-wolf") === "1"; } catch (e) {}
   if (seen || /^#(ftw-\d{3}|reel|shoots|exhibit)$/.test(location.hash)) { gate.remove(); return; }
   doc.classList.add("gated");
-  // the eyes: something opens in the dark and watches you choose
+  // the entity: a face pressing into black latex from the other side, only just there
   const ecv = document.getElementById("gate-entity");
-  const ent = reduceMotion ? null : createEyes(ecv);
+  const ent = reduceMotion ? null : createMelt(ecv, {
+    amb: 0.008, tint: 0, decay: 0.97, rad: 0.02, heat: 0, speed: 0.35, drag: 0.04, // a rendered latex face; the cursor only dents it
+    auto(t, p) { // an invisible hand moving through it
+      const x = .5 + Math.sin(t * .37) * .28 + Math.sin(t * 1.3) * .05, y = .55 + Math.sin(t * .51 + 1) * .22;
+      p.vx += (x - p.x) * .9; p.vy += (y - p.y) * .9; p.x = x; p.y = y;
+    },
+  });
   if (ent) {
-    ent.resize(); ent.start();
+    ent.resize(); ent.setSource(document.createElement("canvas")); ent.start();
+    const face = new Image();
+    face.onload = () => ent.setSource(face);
+    face.src = innerWidth < innerHeight ? "images/gate-face-p.jpg" : "images/gate-face-l.jpg";
     requestAnimationFrame(() => ecv.classList.add("on"));
-    gate.addEventListener("pointermove", (e) => ent.look((e.clientX / innerWidth) * 2 - 1, 1 - (e.clientY / innerHeight) * 2));
-    gate.querySelectorAll(".gate-pick .pick").forEach((b) => {
-      const m = b.id === "pick-wolf" ? "wolf" : "sheep";
-      b.addEventListener("pointerenter", () => ent.mood(m));
-      b.addEventListener("pointerleave", () => ent.mood(""));
-      b.addEventListener("focus", () => ent.mood(m));
-      b.addEventListener("blur", () => ent.mood(""));
+    let lp = null;
+    gate.addEventListener("pointermove", (e) => {
+      const x = e.clientX / innerWidth, y = 1 - e.clientY / innerHeight;
+      if (lp) ent.push(x, y, (x - lp[0]) * 4, (y - lp[1]) * 4);
+      lp = [x, y];
     });
     window.addEventListener("resize", () => ent.resize());
   } else ecv.remove();
@@ -1051,93 +1058,3 @@ const fontReady = document.fonts && document.fonts.load
   ? Promise.all([document.fonts.load('100px "UnifrakturMaguntia"'), document.fonts.load('300 100px "Anybody"')]).then(() => document.fonts.ready)
   : Promise.resolve();
 fontReady.then(boot, boot);
-
-/* ================= THE EYES: something is watching you choose ================= */
-// Two eyes open slowly out of the black and follow you between Wolf and Sheep.
-// Hovering Wolf, the pupils open. Hovering Sheep, the lids lower.
-function createEyes(cv) {
-  const gl = cv.getContext("webgl", { antialias: false, alpha: false });
-  if (!gl) return null;
-  const VS = `attribute vec2 p; varying vec2 uv; void main(){ uv = p * .5 + .5; gl_Position = vec4(p, 0, 1); }`;
-  const FS = `precision highp float; varying vec2 uv;
-uniform vec2 uRes, uLook; uniform float uT, uOpen, uPupil, uLid, uSize, uY, uOne;
-float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
-  return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
-float fbm(vec2 p){ float s = 0., a = .5; for (int i = 0; i < 5; i++){ s += a * n(p); p = p * 2.07 + 3.1; a *= .5; } return s; }
-vec3 eye(vec2 p, float side){
-  // no lids, no edges: a gaze made of light, blue within blue, dissolving into the haze
-  vec2 ic = uLook * vec2(.34 * -side, .14);
-  vec2 d = p - ic;
-  float wob = fbm(vec2(atan(d.y, d.x) * 2., uT * .2 + side)) - .5;
-  float r = length(d * vec2(1., 1.25)) * (1. + wob * .25) / .6, a = atan(d.y, d.x);
-  float fib = fbm(vec2(a * 7. + side * 3., r * 2. - uT * .06)) * .7 + fbm(vec2(a * 23., r * 5. + uT * .04)) * .3;
-  float body = exp(-r * r * .9);                                   // the glow, no rim
-  vec3 c = mix(vec3(.01, .06, .24), vec3(.3, .6, 1.), pow(fib, 1.4) * 1.5 * smoothstep(1.6, .15, r)) * body;
-  c += vec3(.05, .25, .75) * exp(-r * r * .35) * .12;               // a wider bloom
-  c += vec3(.25, .55, 1.) * pow(max(0., 1. - abs(r - uPupil - .05) * 6.), 3.) * .35 * body; // light at the pupil's edge
-  float pup = smoothstep(uPupil + .07, uPupil - .05, r);
-  c *= 1. - pup * .97;
-  return c * uOpen * (1. - uLid * .7);
-}
-void main(){
-  vec2 q = (uv - .5) * uRes / uRes.y;           // y in -.5..5
-  q.y -= uY;
-  vec2 p = q / uSize;
-  float gap = uRes.x < uRes.y ? 1.05 : 1.15;
-  vec3 c = uOne > .5 ? eye(p * vec2(1.25, .8) / 2.1, -1.) * 1.1
-                     : eye(vec2(p.x + gap, p.y), -1.) + eye(vec2(p.x - gap, p.y) * vec2(-1., 1.), 1.);
-  // sand haze drifting through the dark
-  vec2 hq = q * vec2(1.6, 3.2);
-  float haze = fbm(hq + vec2(uT * .05, uT * .012)) * fbm(hq * 2.3 - vec2(uT * .08, 0.));
-  c += vec3(.2, .12, .055) * haze * haze * (.6 + .4 * smoothstep(.5, -.3, q.y));
-  float grain = step(.9985, h(floor(uv * uRes / 2.) + floor(uT * 8.)));
-  c += vec3(.35, .25, .14) * grain * .25;
-  c += (h(uv * uRes + fract(uT)) - .5) * .02;
-  gl_FragColor = vec4(c, 1);
-}`;
-  const sh = (t, s) => { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
-  let pr;
-  try { pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.bindAttribLocation(pr, 0, "p"); gl.linkProgram(pr); } catch (e) { return null; }
-  gl.useProgram(pr);
-  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-  const U = (n) => gl.getUniformLocation(pr, n);
-  const s = { look: [0, 0], tgt: [0, 0], open: 0, pupil: .17, pupilT: .17, lid: 0, lidT: 0, blink: 0 };
-  let raf = 0, live = false, t0 = performance.now(), last = t0, nextBlink = 4 + Math.random() * 4, idleT = 0;
-  function resize() {
-    const r = cv.getBoundingClientRect(), dpr = Math.min(1.5, window.devicePixelRatio || 1);
-    cv.width = Math.max(2, Math.round(r.width * dpr)); cv.height = Math.max(2, Math.round(r.height * dpr));
-  }
-  function frame(now) {
-    const t = (now - t0) / 1000, dt = Math.min(.05, (now - last) / 1000); last = now;
-    // wake slowly, then blink now and then
-    const wake = Math.min(1, Math.max(0, (t - .6) / 2.6)), ease = wake * wake * (3 - 2 * wake);
-    if (t > nextBlink) { s.blink = 1; nextBlink = t + 5 + Math.random() * 6; }
-    s.blink = Math.max(0, s.blink - dt * 5);
-    const bl = s.blink > .5 ? (1 - s.blink) * 2 : s.blink * 2; // 0..1..0
-    s.open = ease * (1 - Math.sin(bl * Math.PI / 2) * .97 * (s.blink > 0 ? 1 : 0));
-    // when nobody moves, the gaze drifts between the two words
-    idleT += dt;
-    if (idleT > 2.5) s.tgt = [Math.sin(t * .35) * .8, -.55 + Math.sin(t * .23) * .15];
-    s.look[0] += (s.tgt[0] - s.look[0]) * Math.min(1, dt * 3.2);
-    s.look[1] += (s.tgt[1] - s.look[1]) * Math.min(1, dt * 3.2);
-    s.pupil += (s.pupilT - s.pupil) * Math.min(1, dt * 2.5);
-    s.lid += (s.lidT - s.lid) * Math.min(1, dt * 2.5);
-    gl.viewport(0, 0, cv.width, cv.height);
-    const narrow = cv.width < cv.height;
-    gl.uniform2f(U("uRes"), cv.width, cv.height); gl.uniform2f(U("uLook"), s.look[0], s.look[1]);
-    gl.uniform1f(U("uT"), t); gl.uniform1f(U("uOne"), window.FTW_ONE === 0 ? 0 : 1); gl.uniform1f(U("uOpen"), s.open); gl.uniform1f(U("uPupil"), s.pupil); gl.uniform1f(U("uLid"), s.lid);
-    gl.uniform1f(U("uSize"), narrow ? (cv.width / cv.height) * .185 : .17); gl.uniform1f(U("uY"), narrow ? .14 : .1);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    raf = live ? requestAnimationFrame(frame) : 0;
-  }
-  return {
-    resize,
-    look(x, y) { idleT = 0; s.tgt = [Math.max(-1, Math.min(1, x)), Math.max(-1, Math.min(1, y))]; },
-    mood(m) { s.pupilT = m === "wolf" ? .3 : m === "sheep" ? .08 : .17; s.lidT = m === "sheep" ? 1 : 0; },
-    start() { if (!live) { live = true; raf = requestAnimationFrame(frame); } },
-    stop() { live = false; cancelAnimationFrame(raf); },
-  };
-}
