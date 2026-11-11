@@ -304,6 +304,7 @@ document.getElementById("ov-close").addEventListener("click", closeProject);
 document.getElementById("ov-next").addEventListener("click", (e) => openProject(Number(e.currentTarget.dataset.i)));
 // a shared link like forthewolveshq.com/#ftw-002 opens that project
 function openFromHash() {
+  if (!WORK_ON) return;
   const m = /^#ftw-(\d{3})$/.exec(location.hash);
   if (m && PROJECTS[Number(m[1]) - 1]) openProject(Number(m[1]) - 1, false);
 }
@@ -1020,11 +1021,14 @@ if (artView) {
 
 /* ================= PAGES: reel, shoots and exhibit each get their own page ================= */
 const ROOMS = ["reel", "shoots", "exhibit"];
+// The work rooms are switched off until the folio is ready. Set to true to bring them back (and unhide #work in index.html).
+const WORK_ON = false;
 const home = document.querySelector("main.home");
 let room = null;
 function route() {
   const h = location.hash.slice(1);
-  const next = ROOMS.includes(h) ? h : /^ftw-\d{3}$/.test(h) ? "shoots" : null;
+  if (!WORK_ON && (ROOMS.includes(h) || /^ftw-\d{3}$/.test(h))) { history.replaceState(null, "", location.pathname); }
+  const next = !WORK_ON ? null : ROOMS.includes(h) ? h : /^ftw-\d{3}$/.test(h) ? "shoots" : null;
   if (next === room) return;
   const wasRoom = room;
   room = next;
