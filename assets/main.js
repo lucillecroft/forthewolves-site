@@ -753,7 +753,6 @@ void main(){
     canvas: cv, resize, setSource, clear: clearField,
     get energy() { return energy; },
     push(x, y, vx, vy) { ptr.x = x; ptr.y = y; ptr.vx += vx; ptr.vy += vy; },
-    palette(n) { pal = PAL[n] || PAL.silver; },
     start() { if (!live) { live = true; raf = requestAnimationFrame(frame); } },
     stop() { live = false; cancelAnimationFrame(raf); raf = 0; },
   };
@@ -1061,7 +1060,7 @@ function createEyes(cv) {
   if (!gl) return null;
   const VS = `attribute vec2 p; varying vec2 uv; void main(){ uv = p * .5 + .5; gl_Position = vec4(p, 0, 1); }`;
   const FS = `precision highp float; varying vec2 uv;
-uniform vec2 uRes, uLook; uniform float uT, uOpen, uPupil, uLid, uSize, uY, uOne; uniform vec3 uDeep, uLit, uHaze;
+uniform vec2 uRes, uLook; uniform float uT, uOpen, uPupil, uLid, uSize, uY, uOne;
 float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
   return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
@@ -1070,14 +1069,13 @@ vec3 eye(vec2 p, float side){
   // no lids, no edges: a gaze made of light, blue within blue, dissolving into the haze
   vec2 ic = uLook * vec2(.34 * -side, .14);
   vec2 d = p - ic;
-  vec2 dn = normalize(d + 1e-5);
-  float wob = fbm(dn * 1.2 + vec2(uT * .2 + side, 0.)) - .5;
+  float wob = fbm(vec2(atan(d.y, d.x) * 2., uT * .2 + side)) - .5;
   float r = length(d * vec2(1., 1.25)) * (1. + wob * .25) / .6, a = atan(d.y, d.x);
-  float fib = fbm(dn * 5. + vec2(side * 3. + r * .4, r * 2. - uT * .06)) * .7 + fbm(dn * 16. + vec2(r * 1.5, r * 5. + uT * .04)) * .3;
+  float fib = fbm(vec2(a * 7. + side * 3., r * 2. - uT * .06)) * .7 + fbm(vec2(a * 23., r * 5. + uT * .04)) * .3;
   float body = exp(-r * r * .9);                                   // the glow, no rim
-  vec3 c = mix(uDeep, uLit, pow(fib, 1.4) * 1.5 * smoothstep(1.6, .15, r)) * body;
-  c += uLit * .5 * exp(-r * r * .35) * .12;               // a wider bloom
-  c += uLit * .9 * pow(max(0., 1. - abs(r - uPupil - .05) * 6.), 3.) * .35 * body; // light at the pupil's edge
+  vec3 c = mix(vec3(.01, .06, .24), vec3(.3, .6, 1.), pow(fib, 1.4) * 1.5 * smoothstep(1.6, .15, r)) * body;
+  c += vec3(.05, .25, .75) * exp(-r * r * .35) * .12;               // a wider bloom
+  c += vec3(.25, .55, 1.) * pow(max(0., 1. - abs(r - uPupil - .05) * 6.), 3.) * .35 * body; // light at the pupil's edge
   float pup = smoothstep(uPupil + .07, uPupil - .05, r);
   c *= 1. - pup * .97;
   return c * uOpen * (1. - uLid * .7);
@@ -1092,9 +1090,9 @@ void main(){
   // sand haze drifting through the dark
   vec2 hq = q * vec2(1.6, 3.2);
   float haze = fbm(hq + vec2(uT * .05, uT * .012)) * fbm(hq * 2.3 - vec2(uT * .08, 0.));
-  c += uHaze * haze * haze * (.6 + .4 * smoothstep(.5, -.3, q.y));
+  c += vec3(.2, .12, .055) * haze * haze * (.6 + .4 * smoothstep(.5, -.3, q.y));
   float grain = step(.9985, h(floor(uv * uRes / 2.) + floor(uT * 8.)));
-  c += uHaze * 1.8 * grain * .25;
+  c += vec3(.35, .25, .14) * grain * .25;
   c += (h(uv * uRes + fract(uT)) - .5) * .02;
   gl_FragColor = vec4(c, 1);
 }`;
@@ -1106,9 +1104,6 @@ void main(){
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   const U = (n) => gl.getUniformLocation(pr, n);
-  // light colourways for the eye: deep, lit, haze
-  const PAL = { silver: [[.02, .022, .028], [.86, .88, .92], [.07, .072, .08]], sand: [[.07, .03, .005], [1., .74, .4], [.2, .12, .055]] };
-  let pal = PAL.silver;
   const s = { look: [0, 0], tgt: [0, 0], open: 0, pupil: .17, pupilT: .17, lid: 0, lidT: 0, blink: 0 };
   let raf = 0, live = false, t0 = performance.now(), last = t0, nextBlink = 4 + Math.random() * 4, idleT = 0;
   function resize() {
@@ -1133,7 +1128,7 @@ void main(){
     gl.viewport(0, 0, cv.width, cv.height);
     const narrow = cv.width < cv.height;
     gl.uniform2f(U("uRes"), cv.width, cv.height); gl.uniform2f(U("uLook"), s.look[0], s.look[1]);
-    gl.uniform1f(U("uT"), t); gl.uniform3fv(U("uDeep"), pal[0]); gl.uniform3fv(U("uLit"), pal[1]); gl.uniform3fv(U("uHaze"), pal[2]); gl.uniform1f(U("uOne"), window.FTW_ONE === 0 ? 0 : 1); gl.uniform1f(U("uOpen"), s.open); gl.uniform1f(U("uPupil"), s.pupil); gl.uniform1f(U("uLid"), s.lid);
+    gl.uniform1f(U("uT"), t); gl.uniform1f(U("uOne"), window.FTW_ONE === 0 ? 0 : 1); gl.uniform1f(U("uOpen"), s.open); gl.uniform1f(U("uPupil"), s.pupil); gl.uniform1f(U("uLid"), s.lid);
     gl.uniform1f(U("uSize"), narrow ? (cv.width / cv.height) * .185 : .17); gl.uniform1f(U("uY"), narrow ? .14 : .1);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     raf = live ? requestAnimationFrame(frame) : 0;
@@ -1142,7 +1137,6 @@ void main(){
     resize,
     look(x, y) { idleT = 0; s.tgt = [Math.max(-1, Math.min(1, x)), Math.max(-1, Math.min(1, y))]; },
     mood(m) { s.pupilT = m === "wolf" ? .3 : m === "sheep" ? .08 : .17; s.lidT = m === "sheep" ? 1 : 0; },
-    palette(n) { pal = PAL[n] || PAL.silver; },
     start() { if (!live) { live = true; raf = requestAnimationFrame(frame); } },
     stop() { live = false; cancelAnimationFrame(raf); },
   };
