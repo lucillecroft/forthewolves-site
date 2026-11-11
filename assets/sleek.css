@@ -46,6 +46,9 @@ canvas, .shot-img canvas, .row .thumb canvas, .peek canvas { image-rendering: au
 .foot-row { border-top: 0; }
 .gate-pick .pick { font-family: var(--sans); font-weight: 300; text-transform: none; letter-spacing: -.05em; background: none; color: var(--bone); transition: opacity 1.4s ease; }
 .gate-pick:hover .pick:not(:hover) { opacity: .15; }
+.gate-pick { display: grid; grid-template-columns: 1fr auto 1fr; width: 100%; }
+.gate-pick #pick-wolf { justify-self: end; }
+.gate-pick #pick-sheep { justify-self: start; }
 .gate-q { font-family: var(--mono); }
 .flock { text-transform: none; font-weight: 300; }
 .gate.turned .flock .turn { background: none; color: var(--bone); }
