@@ -38,7 +38,7 @@ const hero = document.getElementById("hero-canvas");
 const hctx = hero.getContext("2d");
 const BL = `UnifrakturMaguntia, "Old English Text MT", serif`;   // blackletter, now only for artwork
 // wordmark face: Anybody, black weight, extra-wide, tight
-const WM = (ctx, px) => { ctx.font = `900 ${px}px Anybody, "Arial Black", sans-serif`; try { ctx.fontStretch = "extra-expanded"; ctx.letterSpacing = `${(-px * 0.04).toFixed(1)}px`; } catch (e) {} };
+const WM = (ctx, px) => { ctx.font = `300 ${px}px Anybody, "Arial Black", sans-serif`; try { ctx.fontStretch = "extra-expanded"; ctx.letterSpacing = `${(-px * 0.02).toFixed(1)}px`; } catch (e) {} };
 let HW = 0, HH = 0, big = 0, small = 0, mask = null, work = null;
 const view = { h: 0.5, tilt: 0, glint: -1 };          // current
 const aim = { h: 0.5, tilt: 0, glint: null };         // where the pointer wants it
@@ -73,8 +73,7 @@ function chromeFill(x, top, bottom, h, tilt) {
   const span = bottom - top, lean = tilt * span;
   const g = x.createLinearGradient(-lean, top, lean, bottom);
   const c = (v) => Math.min(1, Math.max(0, v));
-  [[0, "#ffffff"], [h - 0.24, "#d2d4d8"], [h - 0.07, "#7b7d83"], [h - 0.015, "#26272b"], [h + 0.02, "#0c0c0e"],
-   [h + 0.045, "#e6e7ea"], [h + 0.25, "#9fa1a6"], [1, "#f6f6f8"]]
+  [[0, "#f4f4f6"], [0.45, "#c4c6ca"], [0.55, "#8e9095"], [1, "#dcdde0"]]
     .forEach(([o, col]) => g.addColorStop(c(o), col));
   return g;
 }
@@ -112,8 +111,8 @@ function heroLoop(now) {
   // automatic sweep every ~6s unless the cursor is steering the glint
   let gTarget = aim.glint;
   if (gTarget === null) {
-    const t = (now - sweepStart) / 1500;
-    if (t > 1.15) sweepStart = now + 4500 + Math.random() * 2500;
+    const t = (now - sweepStart) / 3200;
+    if (t > 1.15) sweepStart = now + 9000 + Math.random() * 4000;
     gTarget = t < 0 ? -1 : -0.15 + t * 1.3;
     if (Math.abs(view.glint - gTarget) > 0.0005) { view.glint = gTarget; needsDraw = true; }
   } else {
@@ -195,7 +194,7 @@ function paintDither(canvas, lum, w, h) {
   if (isLight()) [ink, ground] = [ground, ink];
   for (let y = 0; y < h; y++) for (let i = 0; i < w; i++) {
     const p = y * w + i, t = (BAYER[(y % 8) * 8 + (i % 8)] + 0.5) / 64;
-    const c = lum[p] > t ? ink : ground;
+    const k = Math.pow(lum[p], 1.4), c = [0, 1, 2].map((n) => Math.round(ground[n] + (ink[n] - ground[n]) * k));
     img.data[p * 4] = c[0]; img.data[p * 4 + 1] = c[1]; img.data[p * 4 + 2] = c[2]; img.data[p * 4 + 3] = 255;
   }
   x.putImageData(img, 0, 0);
@@ -314,7 +313,6 @@ const xy = document.querySelector(".xy");
 if (finePointer) {
   window.addEventListener("pointermove", (e) => {
     mx = e.clientX; my = e.clientY;
-    xy.textContent = `X ${pad(Math.round(mx), 4)}\nY ${pad(Math.round(my + window.scrollY), 4)}`;
     xy.style.transform = `translate(${mx + 14}px, ${my + 14}px)`;
   });
   (function follow() {
@@ -333,7 +331,7 @@ function tick() {
   const d = new Date();
   clock.textContent = `FTW/HQ ${pad(d.getHours(), 2)}:${pad(d.getMinutes(), 2)}:${pad(d.getSeconds(), 2)}`;
 }
-tick(); setInterval(tick, 1000);
+clock.textContent = "";
 
 /* ================= COPY EMAIL ================= */
 document.getElementById("copy-email").addEventListener("click", () => {
@@ -384,7 +382,7 @@ window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTi
   // the eclipse: a black sun behind the question, always slowly melting
   const ecv = document.getElementById("gate-entity");
   const ent = reduceMotion ? null : createMelt(ecv, {
-    amb: 0.035, tint: 0.9, decay: 0.988, rad: 0.03, heat: 0.4,
+    amb: 0.03, tint: 0, decay: 0.992, rad: 0.03, heat: 0, gloss: 7, speed: 0.35,
     auto(t, p) { // an invisible hand moving through it
       const x = .5 + Math.sin(t * .37) * .28 + Math.sin(t * 1.3) * .05, y = .55 + Math.sin(t * .51 + 1) * .22;
       p.vx += (x - p.x) * .9; p.vy += (y - p.y) * .9; p.x = x; p.y = y;
@@ -594,6 +592,7 @@ const Field = (() => {
 
 /* ================= SMEAR: images drag and pixel-sort under the cursor ================= */
 function attachSmear(box) {
+  return; // sleek: no pixel-sort smear
   if (!finePointer || reduceMotion || box._smear) return;
   box._smear = true;
   const sm = document.createElement("canvas"); sm.className = "smear";
@@ -640,7 +639,7 @@ function attachSmear(box) {
 function createMelt(cv, opt = {}) {
   const gl = cv.getContext("webgl2", { antialias: false, alpha: false, preserveDrawingBuffer: false });
   if (!gl || !gl.getExtension("EXT_color_buffer_float")) return null;
-  const amb = opt.amb ?? 0.02, tint = opt.tint ?? 0.85, decay = opt.decay ?? 0.985, heat = opt.heat ?? 0;
+  const amb = opt.amb ?? 0.02, tint = opt.tint ?? 0.85, decay = opt.decay ?? 0.985, heat = opt.heat ?? 0, gloss = opt.gloss ?? 0, speed = opt.speed ?? 1;
   const VS = `#version 300 es
 in vec2 p; out vec2 uv; void main(){ uv = p * .5 + .5; gl_Position = vec4(p, 0, 1); }`;
   const FIELD = `#version 300 es
@@ -655,7 +654,7 @@ void main(){
 }`;
   const DRAW = `#version 300 es
 precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D uImg, uField; uniform float uT, uAmb, uTint, uHeat; uniform vec2 uCover;
+uniform sampler2D uImg, uField; uniform float uT, uAmb, uTint, uHeat, uGloss; uniform vec2 uCover;
 float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
   return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
@@ -680,7 +679,21 @@ void main(){
   // a dash of blood under the ice: where the flow is strongest, warm flesh shows through
   vec3 warm = vec3(L * 1.25, L * .42, L * .38);
   c = mix(c, warm, smoothstep(.04, .3, m) * uHeat * smoothstep(.15, .6, L));
-  c += (h(uv * vec2(1013., 977.) + fract(uT)) - .5) * .045;
+  if (uGloss > 0.) {
+    // black latex: the image becomes a relief under a skin of gloss, lit by one slow light
+    vec2 q = uv - off * .5, e = vec2(1. / 300.);
+    float hc = dot(img(q), vec3(.333));
+    float hx = dot(img(q + vec2(e.x, 0)), vec3(.333)) - dot(img(q - vec2(e.x, 0)), vec3(.333));
+    float hy = dot(img(q + vec2(0, e.y)), vec3(.333)) - dot(img(q - vec2(0, e.y)), vec3(.333));
+    vec3 nr = normalize(vec3(-hx * uGloss, -hy * uGloss, 1.));
+    vec3 l = normalize(vec3(cos(uT * .11) * .8, .5 + sin(uT * .07) * .35, .42));
+    vec3 hv = normalize(l + vec3(0, 0, 1));
+    float nh = max(dot(nr, hv), 0.);
+    float spec = pow(nh, 120.) * 1.5 + pow(nh, 14.) * .1;
+    float fres = pow(1. - nr.z, 2.) * .35;
+    c = vec3(.006) + hc * vec3(.05, .048, .046) + (spec + fres) * vec3(.97, .95, .92);
+  }
+  c += (h(uv * vec2(1013., 977.) + fract(uT)) - .5) * (uGloss > 0. ? .012 : .045);
   o = vec4(c, 1);
 }`;
   const sh = (t, s) => { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
@@ -715,7 +728,7 @@ void main(){
     srcW = src.naturalWidth || src.width; srcH = src.naturalHeight || src.height;
   }
   function frame() {
-    const now = performance.now(), t = (now - t0) / 1000;
+    const now = performance.now(), t = (now - t0) / 1000 * speed;
     if (opt.auto) opt.auto(t, ptr);
     const asp = cv.width / cv.height;
     // field step
@@ -733,7 +746,7 @@ void main(){
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, imgTex);
     gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, fields[cur].t);
     gl.uniform1i(U(pd, "uImg"), 0); gl.uniform1i(U(pd, "uField"), 1);
-    gl.uniform1f(U(pd, "uT"), t); gl.uniform1f(U(pd, "uAmb"), amb); gl.uniform1f(U(pd, "uTint"), tint); gl.uniform1f(U(pd, "uHeat"), heat);
+    gl.uniform1f(U(pd, "uT"), t); gl.uniform1f(U(pd, "uAmb"), amb); gl.uniform1f(U(pd, "uTint"), tint); gl.uniform1f(U(pd, "uHeat"), heat); gl.uniform1f(U(pd, "uGloss"), gloss);
     const sa = srcW / srcH;
     gl.uniform2f(U(pd, "uCover"), sa > asp ? asp / sa : 1, sa > asp ? 1 : sa / asp);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -1002,7 +1015,7 @@ if (artView) {
     b.addEventListener("click", () => { held = true; light(i); });
   });
   list.addEventListener("pointerleave", () => { held = false; });
-  if (!reduceMotion) setInterval(() => { if (!held && !document.hidden) light((cur + 1) % items.length); }, 1800);
+  if (!reduceMotion) setInterval(() => { if (!held && !document.hidden) light((cur + 1) % items.length); }, 3600);
 })();
 
 /* ================= PAGES: reel, shoots and exhibit each get their own page ================= */
@@ -1033,8 +1046,8 @@ function route() {
 }
 window.addEventListener("hashchange", route);
 
-const boot = () => { buildHero(); paintThumbs(); Field.build(); Reel.build(); buildHall(); route(); openFromHash(); if (!reduceMotion) requestAnimationFrame(heroLoop); };
+const boot = () => { buildHero(); paintThumbs(); Field.build(); Reel.build(); buildHall(); route(); openFromHash(); };  // sleek: the wordmark stays still
 const fontReady = document.fonts && document.fonts.load
-  ? Promise.all([document.fonts.load('100px "UnifrakturMaguntia"'), document.fonts.load('900 100px "Anybody"')]).then(() => document.fonts.ready)
+  ? Promise.all([document.fonts.load('100px "UnifrakturMaguntia"'), document.fonts.load('300 100px "Anybody"')]).then(() => document.fonts.ready)
   : Promise.resolve();
 fontReady.then(boot, boot);

@@ -1,0 +1,62 @@
+/* Sleek draft: one material, quiet type, no tech UI, slow. Loaded after styles.css. */
+:root { --sans: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif; --line: rgba(233,233,235,0); }
+body { font-family: var(--sans); font-weight: 300; letter-spacing: -.005em; }
+.tiny, .bar nav, .placard, .reel-hud { font-family: var(--mono); }
+.grain { animation: none; opacity: .035; }
+
+/* 1. no tech UI */
+.xy, .tag, .gen-info, .peek { display: none !important; }
+.bar .clock { visibility: hidden; }
+.bar .mark b { white-space: nowrap; }
+.bar { font-family: var(--mono); }
+
+/* 2. one effect: the latex. No letter art, no dither, no smear */
+.smear { display: none !important; }
+canvas, .shot-img canvas, .row .thumb canvas, .peek canvas { image-rendering: auto !important; }
+
+/* 3. quiet type, fewer capitals */
+.sec-head { border-bottom: 0; padding-bottom: 0; }
+.sec-head h2 { font-family: var(--mono); color: var(--ash); }
+.gen-q h2 { font-family: var(--sans); font-weight: 300; text-transform: none; letter-spacing: -.035em; font-size: clamp(1.6rem, 1rem + 2.2vw, 3rem); max-width: none; }
+.gen-line { font-weight: 300; text-transform: none; letter-spacing: -.025em; color: var(--silver); }
+.gen-line .gen-cta { font-family: var(--mono); text-transform: uppercase; }
+.svc-list button { font-family: var(--sans); font-weight: 300; text-transform: none; letter-spacing: -.035em; color: #2a2a2d; transition: color 1.2s ease; }
+.svc-list .on button { background: none; color: var(--bone); }
+.svc-desc { border-top: 0; font-weight: 300; color: var(--ash); transition: opacity 1.2s; }
+.manifesto .big { text-transform: none; font-weight: 300; letter-spacing: -.04em; max-width: 22ch; }
+.manifesto .big .bl { font-size: .9em; }
+.manifesto .big s { text-decoration-thickness: 1px; color: var(--ash); }
+.contact .mail { text-transform: none; font-weight: 300; letter-spacing: -.04em; }
+.contact .mail:hover { background: none; color: var(--silver); }
+.btn { border-color: rgba(233,233,235,.25); font-family: var(--mono); transition: background .8s, color .8s; }
+.btn:hover { background: var(--bone); color: var(--void); border-color: var(--bone); }
+.page-title { font-family: var(--sans); font-weight: 300; text-transform: none; letter-spacing: -.05em; background: none; color: var(--bone); }
+.page-top { border-bottom: 0; }
+.page-next { border-top: 0; }
+.page-next .t, .page-next > span:last-child { font-weight: 300; text-transform: none; }
+.page-next:hover .t { background: none; color: var(--silver); }
+.row .t { font-weight: 300; text-transform: none; letter-spacing: -.04em; }
+.row { border-bottom: 0; transition: opacity .8s; }
+.row:hover, .row:focus-visible { background: none; color: inherit; }
+.row:hover .n, .row:hover .d, .row:hover .y { color: var(--ash); }
+.index:hover .row:not(:hover) { opacity: .35; }
+.ov h2, .ov-next .t { font-weight: 300; text-transform: none; }
+.ov-next { border-top: 0; }
+.ov-meta { border-top: 0; }
+.foot-row { border-top: 0; }
+.gate-pick .pick { font-family: var(--sans); font-weight: 300; text-transform: none; letter-spacing: -.05em; background: none; color: var(--bone); transition: opacity 1.4s ease; }
+.gate-pick:hover .pick:not(:hover) { opacity: .15; }
+.gate-q { font-family: var(--mono); }
+.flock { text-transform: none; font-weight: 300; }
+.gate.turned .flock .turn { background: none; color: var(--bone); }
+
+/* 5. slow */
+.gate { transition: clip-path 1.8s cubic-bezier(.7, 0, .2, 1), background 1s, color 1s; }
+.gate-entity { transition: opacity 4s ease; }
+.gate-entity.on { opacity: 1; }
+
+/* 6. rooms stay small rows, borderless */
+.door .y { font-size: var(--s-1); }
+
+/* wordmark option 1: same wide shape, light weight */
+.bar .mark b, .foot-mark, .manifesto .big .bl, .baa, .howl p { font-weight: 300; letter-spacing: -.02em; }
