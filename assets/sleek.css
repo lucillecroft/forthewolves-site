@@ -2,7 +2,9 @@
 :root { --sans: "Inter Tight", "Helvetica Neue", Helvetica, Arial, sans-serif; --line: rgba(233,233,235,0); }
 body { font-family: var(--sans); font-weight: 300; letter-spacing: -.005em; }
 .tiny, .bar nav, .placard, .reel-hud { font-family: var(--mono); }
-.grain { animation: none; opacity: .035; }
+/* no grain overlay: iPhone Safari drew it as a grey wash over the whole page */
+html, body { background: #000; }
+.grain { display: none; }
 
 /* 1. no tech UI */
 .xy, .tag, .gen-info, .peek { display: none !important; }
