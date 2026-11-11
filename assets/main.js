@@ -383,7 +383,7 @@ window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTi
   // the entity: a face pressing into black latex from the other side, only just there
   const ecv = document.getElementById("gate-entity");
   const ent = reduceMotion ? null : createMelt(ecv, {
-    amb: 0.03, tint: 0, decay: 0.992, rad: 0.03, heat: 0, gloss: 7, speed: 0.35,
+    amb: 0.012, tint: 0, decay: 0.97, rad: 0.02, heat: 0, gloss: 7, speed: 0.35, drag: 0.06, sheen: 1.9, // the latex only gives a little under the cursor
     auto(t, p) { // an invisible hand moving through it
       const x = .5 + Math.sin(t * .37) * .28 + Math.sin(t * 1.3) * .05, y = .55 + Math.sin(t * .51 + 1) * .22;
       p.vx += (x - p.x) * .9; p.vy += (y - p.y) * .9; p.x = x; p.y = y;
@@ -643,7 +643,7 @@ function attachSmear(box) {
 function createMelt(cv, opt = {}) {
   const gl = cv.getContext("webgl2", { antialias: false, alpha: false, preserveDrawingBuffer: false });
   if (!gl || !gl.getExtension("EXT_color_buffer_float")) return null;
-  const amb = opt.amb ?? 0.02, tint = opt.tint ?? 0.85, decay = opt.decay ?? 0.985, heat = opt.heat ?? 0, gloss = opt.gloss ?? 0, speed = opt.speed ?? 1;
+  const amb = opt.amb ?? 0.02, tint = opt.tint ?? 0.85, decay = opt.decay ?? 0.985, heat = opt.heat ?? 0, gloss = opt.gloss ?? 0, speed = opt.speed ?? 1, drag = opt.drag ?? .5, sheen = opt.sheen ?? 1;
   const VS = `#version 300 es
 in vec2 p; out vec2 uv; void main(){ uv = p * .5 + .5; gl_Position = vec4(p, 0, 1); }`;
   const FIELD = `#version 300 es
@@ -658,7 +658,7 @@ void main(){
 }`;
   const DRAW = `#version 300 es
 precision highp float; in vec2 uv; out vec4 o;
-uniform sampler2D uImg, uField; uniform float uT, uAmb, uTint, uHeat, uGloss; uniform vec2 uCover;
+uniform sampler2D uImg, uField; uniform float uT, uAmb, uTint, uHeat, uGloss, uDrag, uSheen; uniform vec2 uCover;
 float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
   return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
@@ -667,7 +667,7 @@ vec3 img(vec2 u){ u = (u - .5) * uCover + .5; return texture(uImg, vec2(u.x, 1. 
 void main(){
   vec2 d = texture(uField, uv).xy;
   vec2 w = vec2(fbm(uv * 1.8 + vec2(uT * .05, -uT * .04)), fbm(uv * 1.8 + vec2(5.2 - uT * .045, 1.3 + uT * .035))) - .5;
-  vec2 off = d * .5 + w * uAmb;
+  vec2 off = d * uDrag + w * uAmb;
   vec3 c = vec3(0); float tw = 0.;
   for (int i = 0; i < 12; i++){ float k = float(i) / 11.; float wt = 1. - k * .7; c += img(uv - off * k) * wt; tw += wt; }
   c /= tw;
@@ -693,9 +693,9 @@ void main(){
     vec3 l = normalize(vec3(cos(uT * .11) * .8, .5 + sin(uT * .07) * .35, .42));
     vec3 hv = normalize(l + vec3(0, 0, 1));
     float nh = max(dot(nr, hv), 0.);
-    float spec = pow(nh, 120.) * 1.5 + pow(nh, 14.) * .1;
+    float spec = pow(nh, 120.) * 1.5 + pow(nh, 14.) * .1 * uSheen + pow(nh, 4.) * .03 * (uSheen - 1.);
     float fres = pow(1. - nr.z, 2.) * .35;
-    c = vec3(.006) + hc * vec3(.05, .048, .046) + (spec + fres) * vec3(.97, .95, .92);
+    c = vec3(.006) + hc * vec3(.05, .048, .046) * uSheen + (spec + fres) * vec3(.97, .95, .92);
   }
   c += (h(uv * vec2(1013., 977.) + fract(uT)) - .5) * (uGloss > 0. ? .012 : .045);
   o = vec4(c, 1);
@@ -750,7 +750,7 @@ void main(){
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, imgTex);
     gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, fields[cur].t);
     gl.uniform1i(U(pd, "uImg"), 0); gl.uniform1i(U(pd, "uField"), 1);
-    gl.uniform1f(U(pd, "uT"), t); gl.uniform1f(U(pd, "uAmb"), amb); gl.uniform1f(U(pd, "uTint"), tint); gl.uniform1f(U(pd, "uHeat"), heat); gl.uniform1f(U(pd, "uGloss"), gloss);
+    gl.uniform1f(U(pd, "uT"), t); gl.uniform1f(U(pd, "uAmb"), amb); gl.uniform1f(U(pd, "uTint"), tint); gl.uniform1f(U(pd, "uHeat"), heat); gl.uniform1f(U(pd, "uGloss"), gloss); gl.uniform1f(U(pd, "uDrag"), drag); gl.uniform1f(U(pd, "uSheen"), sheen);
     const sa = srcW / srcH;
     gl.uniform2f(U(pd, "uCover"), sa > asp ? asp / sa : 1, sa > asp ? 1 : sa / asp);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
