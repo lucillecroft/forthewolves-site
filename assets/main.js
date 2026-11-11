@@ -383,7 +383,7 @@ window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTi
   // the entity: a face pressing into black latex from the other side, only just there
   const ecv = document.getElementById("gate-entity");
   const ent = reduceMotion ? null : createMelt(ecv, {
-    amb: 0.012, tint: 0, decay: 0.97, rad: 0.02, heat: 0, gloss: 7, speed: 0.35, drag: 0.06, sheen: 1.9, // the latex only gives a little under the cursor
+    amb: 0.008, tint: 0, decay: 0.97, rad: 0.02, heat: 0, speed: 0.35, drag: 0.04, // a rendered latex face; the cursor only dents it
     auto(t, p) { // an invisible hand moving through it
       const x = .5 + Math.sin(t * .37) * .28 + Math.sin(t * 1.3) * .05, y = .55 + Math.sin(t * .51 + 1) * .22;
       p.vx += (x - p.x) * .9; p.vy += (y - p.y) * .9; p.x = x; p.y = y;
@@ -393,7 +393,7 @@ window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTi
     ent.resize(); ent.setSource(document.createElement("canvas")); ent.start();
     const face = new Image();
     face.onload = () => ent.setSource(face);
-    face.src = innerWidth < innerHeight ? "images/gate-face-p.png" : "images/gate-face-l.png";
+    face.src = innerWidth < innerHeight ? "images/gate-face-p.jpg" : "images/gate-face-l.jpg";
     requestAnimationFrame(() => ecv.classList.add("on"));
     let lp = null;
     gate.addEventListener("pointermove", (e) => {
