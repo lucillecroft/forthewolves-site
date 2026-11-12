@@ -1058,3 +1058,10 @@ const fontReady = document.fonts && document.fonts.load
   ? Promise.all([document.fonts.load('100px "UnifrakturMaguntia"'), document.fonts.load('300 100px "Anybody"')]).then(() => document.fonts.ready)
   : Promise.resolve();
 fontReady.then(boot, boot);
+
+/* the small wordmark in the bar waits until the big one has scrolled away */
+(() => {
+  const bar = document.querySelector(".bar"), big = document.getElementById("hero-canvas");
+  if (!bar || !big || !("IntersectionObserver" in window)) { if (bar) bar.classList.add("past"); return; }
+  new IntersectionObserver(([e]) => bar.classList.toggle("past", !e.isIntersecting || big.offsetParent === null), { threshold: 0 }).observe(big);
+})();

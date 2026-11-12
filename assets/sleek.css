@@ -67,3 +67,9 @@ canvas, .shot-img canvas, .row .thumb canvas, .peek canvas { image-rendering: au
 
 /* wordmark option 1: same wide shape, light weight */
 .bar .mark b, .foot-mark, .manifesto .big .bl, .baa, .howl p { font-weight: 300; letter-spacing: -.02em; }
+
+/* sweep 2026-11-12 */
+.gen-line .gen-cta { font-family: var(--sans); font-weight: 300; text-transform: none; letter-spacing: -.02em; font-size: max(17px, .55em); background: none; color: var(--bone); }
+.svc-list button { color: #4a4b50; }
+.bar .mark { transition: opacity 1.2s ease; }
+.bar:not(.past) .mark { opacity: 0; pointer-events: none; }
